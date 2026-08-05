@@ -10,4 +10,8 @@ public interface UrlMappingCommandRepository {
             String shortCode,
             String originalUrl
     );
+
+    Optional<String> recordClickAndGetOriginalUrl(
+            String shortCode
+    );
 }

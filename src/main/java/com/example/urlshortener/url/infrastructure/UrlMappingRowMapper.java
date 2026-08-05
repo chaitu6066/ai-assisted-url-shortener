@@ -2,19 +2,20 @@ package com.example.urlshortener.url.infrastructure;
 
 import com.example.urlshortener.url.domain.UrlMapping;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Component;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
 
+@Component
 public class UrlMappingRowMapper implements RowMapper<UrlMapping> {
 
     @Override
     public UrlMapping mapRow(
             ResultSet resultSet,
-            int rowNum
+            int rowNumber
     ) throws SQLException {
-
         OffsetDateTime lastAccessedAt =
                 resultSet.getObject(
                         "last_accessed_at",

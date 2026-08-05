@@ -1,27 +1,25 @@
 package com.example.urlshortener.url.application;
 
-import com.example.urlshortener.url.infrastructure.UrlMappingQueryRepository;
+import com.example.urlshortener.url.infrastructure.UrlMappingCommandRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
 
 @Service
 public class UrlRedirectService {
 
-    private final UrlMappingQueryRepository queryRepository;
+    private final UrlMappingCommandRepository commandRepository;
 
     public UrlRedirectService(
-            UrlMappingQueryRepository queryRepository
+            UrlMappingCommandRepository commandRepository
     ) {
-        this.queryRepository = queryRepository;
+        this.commandRepository = commandRepository;
     }
 
-    @Transactional(readOnly = true)
     public URI resolve(String shortCode) {
-        return queryRepository.findByShortCode(shortCode)
-                .map(mapping ->
-                        URI.create(mapping.getOriginalUrl()))
+        return commandRepository
+                .recordClickAndGetOriginalUrl(shortCode)
+                .map(URI::create)
                 .orElseThrow(() ->
                         new ShortUrlNotFoundException(shortCode));
     }
