@@ -3,7 +3,42 @@
 This guide explains how to verify the URL shortener through Maven tests,
 Swagger UI, Postman, PowerShell, and PostgreSQL.
 
-## 1. Prerequisites
+
+## Docker Compose reviewer setup
+
+A reviewer does not need PostgreSQL, Java, or Maven installed locally when using
+the Docker path. Docker Desktop or a compatible Docker Engine with Compose is
+sufficient.
+
+From the repository root on Windows:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\docker-up.ps1
+```
+
+After the script reports that the application is healthy:
+
+```text
+Swagger UI: http://localhost:8081/swagger-ui.html
+Health:     http://localhost:8081/actuator/health
+```
+
+Run the automated end-to-end smoke test:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\smoke-test.ps1
+```
+
+Stop the environment:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\docker-down.ps1
+```
+
+For manual Compose commands, database inspection, volume reset, and
+troubleshooting, see `docs/DOCKER_GUIDE.md`.
+
+## 1. Manual prerequisites
 
 Before testing:
 

@@ -1,0 +1,17 @@
+target/
+.git/
+.github/
+.idea/
+.settings/
+.sts4-cache/
+.vscode/
+*.iml
+*.log
+logs/
+.env
+.env.*
+docs/
+scripts/
+*.md
+.DS_Store
+Thumbs.db

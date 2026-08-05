@@ -17,6 +17,7 @@ OpenAPI.
 - Unit and HTTP-contract tests
 - Repeatable PowerShell smoke test
 - GitHub Actions build gate
+- Docker Compose reviewer quick start
 
 ## Architecture
 
@@ -75,7 +76,49 @@ Returns HTTP 302 with the destination in the `Location` header.
 GET /api/v1/urls/{shortCode}/analytics
 ```
 
-## Local prerequisites
+
+## Quick start with Docker Compose
+
+This is the recommended reviewer path. A local PostgreSQL installation is not
+required.
+
+### Windows one-command start
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\docker-up.ps1
+```
+
+The script generates an ignored local database password, builds the application
+image, starts PostgreSQL and the application, and waits for the health endpoint.
+
+Then open:
+
+```text
+http://localhost:8081/swagger-ui.html
+```
+
+Run the end-to-end smoke test:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\smoke-test.ps1
+```
+
+Stop containers while retaining database data:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\docker-down.ps1
+```
+
+Stop containers and remove the database volume:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\docker-down.ps1 -RemoveData
+```
+
+Manual Docker Compose instructions and troubleshooting are documented in
+`docs/DOCKER_GUIDE.md`.
+
+## Manual local prerequisites
 
 - Java 21
 - Maven 3.9+
@@ -135,6 +178,8 @@ powershell -ExecutionPolicy Bypass -File .\scripts\smoke-test.ps1
 - `docs/SCENARIO_TRACEABILITY.md`
 - `docs/AI_USAGE_AND_TRACEABILITY.md`
 - `docs/QUALITY_GATES_AND_EVIDENCE.md`
+- `docs/TESTING_GUIDE.md`
+- `docs/DOCKER_GUIDE.md`
 
 ## Current limitations and production evolution
 
