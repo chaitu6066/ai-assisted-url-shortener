@@ -71,12 +71,17 @@ that says not to commit passwords are acceptable; real credentials are not.
 Complete this after the final verification:
 
 ```text
-Reviewer:
-Date:
-Commit:
-mvn clean verify: PASS / FAIL
-Smoke test: PASS / FAIL
-GitHub Actions: PASS / FAIL
-Secret scan reviewed: YES / NO
-Public repository checked in private/incognito window: YES / NO
+Reviewer: chaitanya
+Date:05/08/2026
+Commit:71991e4
+mvn clean verify: PASS
+Local smoke test: PASS
+Docker startup: PASS
+Docker smoke test: PASS
+Docker clean-clone test: PASS
+Swagger verification: PASS
+Redirect verification using curl/Postman: PASS
+GitHub Actions: PASS
+Secret scan reviewed: YES
+Public repository checked in incognito: YES
 ```
