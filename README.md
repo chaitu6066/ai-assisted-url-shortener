@@ -1,77 +1,158 @@
 # AI-Assisted URL Shortener
 
-Production-oriented URL shortener prototype built with Java 21, Spring Boot,
-PostgreSQL, Flyway, and OpenAPI.
+A production-oriented URL-shortener prototype demonstrating engineer-led,
+AI-assisted delivery with Java 21, Spring Boot, PostgreSQL, Flyway, Maven, and
+OpenAPI.
 
-## Implemented capabilities
+## Capabilities
 
-- Generate a 10-character Base62 short code
-- Optionally create a human-readable custom alias
-- Persist through PostgreSQL `INSERT ... ON CONFLICT DO NOTHING`
-- Return `409 Conflict` for duplicate custom aliases
-- Reject reserved aliases such as `api` and `actuator`
-- Redirect valid short codes using HTTP 302
-- Atomically increment redirect analytics in PostgreSQL
-- Expose aggregate analytics without collecting personal data
-- Validate HTTP/HTTPS destination URLs
-- Return structured errors with correlation identifiers
-- Expose Actuator health and Swagger/OpenAPI
+- Generated 10-character Base62 short codes
+- Optional lowercase custom aliases
+- Atomic conflict-safe PostgreSQL inserts
+- HTTP 302 redirects with `Cache-Control: no-store`
+- Atomic click-count and last-accessed analytics
+- Structured error responses with correlation identifiers
+- HTTP/HTTPS destination validation
+- Flyway-managed schema and Hibernate validation
+- Unit and HTTP-contract tests
+- Repeatable PowerShell smoke test
+- GitHub Actions build gate
 
-## Run locally
+## Architecture
 
-```bat
-set DB_URL=jdbc:postgresql://localhost:5432/url_shortener
-set DB_USERNAME=url_shortener_app
-set DB_PASSWORD=<your-local-password>
-set SERVER_PORT=8081
-set PUBLIC_BASE_URL=http://localhost:8081
+```text
+API controllers
+    ↓
+Application services
+    ↓
+Domain policies and models
+    ↓
+JPA query repository + JDBC command repository
+    ↓
+PostgreSQL
+```
 
+JPA is used for straightforward reads. Targeted JDBC is used where PostgreSQL
+atomic statements express the required concurrency behavior more safely.
+
+## API
+
+### Create a short URL
+
+```http
+POST /api/v1/urls
+Content-Type: application/json
+```
+
+Generated code:
+
+```json
+{
+  "originalUrl": "https://www.example.com"
+}
+```
+
+Custom alias:
+
+```json
+{
+  "originalUrl": "https://www.example.com/travel",
+  "customAlias": "travel-2026"
+}
+```
+
+### Redirect
+
+```http
+GET /{shortCode}
+```
+
+Returns HTTP 302 with the destination in the `Location` header.
+
+### Read analytics
+
+```http
+GET /api/v1/urls/{shortCode}/analytics
+```
+
+## Local prerequisites
+
+- Java 21
+- Maven 3.9+
+- PostgreSQL
+- PowerShell for the supplied smoke script
+
+## Configuration
+
+Set configuration through environment variables. Do not commit real
+credentials.
+
+```powershell
+$env:DB_URL="jdbc:postgresql://localhost:5432/url_shortener"
+$env:DB_USERNAME="url_shortener_app"
+$env:DB_PASSWORD="<your-local-password>"
+$env:SERVER_PORT="8081"
+$env:PUBLIC_BASE_URL="http://localhost:8081"
+```
+
+## Build and run
+
+```powershell
 mvn clean verify
 mvn spring-boot:run
 ```
 
-## Create a generated short URL
+## Smoke test
 
-PowerShell:
-
-```powershell
-$body=@{originalUrl="https://www.example.com"}|ConvertTo-Json; Invoke-RestMethod -Method Post -Uri "http://localhost:8081/api/v1/urls" -ContentType "application/json" -Body $body
-```
-
-## Create a custom alias
+With the application running:
 
 ```powershell
-$body=@{originalUrl="https://www.example.com/travel";customAlias="travel-2026"}|ConvertTo-Json; Invoke-RestMethod -Method Post -Uri "http://localhost:8081/api/v1/urls" -ContentType "application/json" -Body $body
-```
-
-## Redirect and record one click
-
-```powershell
-curl.exe -i --max-redirs 0 "http://localhost:8081/travel-2026"
-```
-
-## Read analytics
-
-```powershell
-Invoke-RestMethod -Method Get -Uri "http://localhost:8081/api/v1/urls/travel-2026/analytics"
-```
-
-Example:
-
-```json
-{
-  "shortCode": "travel-2026",
-  "originalUrl": "https://www.example.com/travel",
-  "createdAt": "2026-08-05T04:45:00Z",
-  "clickCount": 3,
-  "lastAccessedAt": "2026-08-05T05:10:00Z"
-}
+powershell -ExecutionPolicy Bypass -File .\scripts\smoke-test.ps1
 ```
 
 ## Operational endpoints
 
 - Health: `http://localhost:8081/actuator/health`
-- Swagger: `http://localhost:8081/swagger-ui.html`
-- OpenAPI: `http://localhost:8081/v3/api-docs`
+- Swagger UI: `http://localhost:8081/swagger-ui.html`
+- OpenAPI JSON: `http://localhost:8081/v3/api-docs`
 
-Detailed engineering documents are under `docs/`.
+## Key design decisions
+
+- PostgreSQL's unique constraint is the authority for code collisions.
+- Generated-code collisions are retried a bounded number of times.
+- User-selected alias conflicts return HTTP 409 rather than being silently changed.
+- Click counting and destination retrieval occur in one atomic update.
+- Analytics are aggregate-only and do not collect visitor personal data.
+- Redirects use HTTP 302 because destinations may be mutable in this prototype.
+- Secrets are externalized through environment variables.
+
+## Documentation
+
+- `docs/ARCHITECTURE.md`
+- `docs/API_DESIGN.md`
+- `docs/DATABASE_DESIGN.md`
+- `docs/ANALYTICS_REQUIREMENT_DECISION.md`
+- `docs/SCENARIO_TRACEABILITY.md`
+- `docs/AI_USAGE_AND_TRACEABILITY.md`
+- `docs/QUALITY_GATES_AND_EVIDENCE.md`
+
+## Current limitations and production evolution
+
+This is a prototype, not a claimed internet-scale service.
+
+Not implemented:
+
+- authentication and authorization;
+- tenant isolation;
+- rate limiting and abuse prevention;
+- expiration, disablement, or deletion;
+- Redis caching;
+- asynchronous click-event ingestion;
+- multi-region routing;
+- database partitioning or sharding;
+- browser UI;
+- personally identifiable analytics.
+
+A production rollout would add controls based on measured load, threat models,
+availability objectives, data-governance requirements, and operational
+evidence rather than unsupported scale assumptions.
