@@ -24,8 +24,10 @@ public class UrlManagementController {
     public ResponseEntity<CreateUrlResponse> createUrl(
             @Valid @RequestBody CreateUrlRequest request
     ) {
-        CreateUrlResponse response =
-                creationService.create(request.originalUrl());
+        CreateUrlResponse response = creationService.create(
+                request.originalUrl(),
+                request.customAlias()
+        );
 
         return ResponseEntity
                 .created(response.shortUrl())

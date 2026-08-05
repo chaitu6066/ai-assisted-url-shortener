@@ -1,6 +1,8 @@
 package com.example.urlshortener.common.error;
 
 import com.example.urlshortener.common.web.CorrelationIdFilter;
+import com.example.urlshortener.url.application.CustomAliasAlreadyExistsException;
+import com.example.urlshortener.url.application.ReservedCustomAliasException;
 import com.example.urlshortener.url.application.ShortCodeAllocationException;
 import com.example.urlshortener.url.application.ShortUrlNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -79,6 +81,36 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST,
                 ErrorCode.VALIDATION_FAILED,
                 "Request body is missing or malformed.",
+                request,
+                List.of(),
+                new HttpHeaders()
+        );
+    }
+
+    @ExceptionHandler(ReservedCustomAliasException.class)
+    public ResponseEntity<ApiErrorResponse> handleReservedAlias(
+            ReservedCustomAliasException exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(
+                HttpStatus.BAD_REQUEST,
+                ErrorCode.RESERVED_CUSTOM_ALIAS,
+                exception.getMessage(),
+                request,
+                List.of(),
+                new HttpHeaders()
+        );
+    }
+
+    @ExceptionHandler(CustomAliasAlreadyExistsException.class)
+    public ResponseEntity<ApiErrorResponse> handleDuplicateAlias(
+            CustomAliasAlreadyExistsException exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(
+                HttpStatus.CONFLICT,
+                ErrorCode.CUSTOM_ALIAS_ALREADY_EXISTS,
+                exception.getMessage(),
                 request,
                 List.of(),
                 new HttpHeaders()
