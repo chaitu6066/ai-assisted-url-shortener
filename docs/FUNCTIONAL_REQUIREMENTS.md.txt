@@ -1,0 +1,233 @@
+# Engineering Design Document (EDD)
+
+## Project
+
+AI-Assisted Production Grade URL Shortener
+
+---
+
+# 1. Problem Statement
+
+## Objective
+
+Design and develop a production-grade URL Shortener service that converts long URLs into compact, shareable URLs while providing reliable redirection, analytics, validation, and production-ready engineering practices.
+
+The application should demonstrate clean architecture, maintainability, scalability, and AI-assisted software engineering where the engineer remains responsible for all architectural and implementation decisions.
+
+---
+
+# 2. Functional Requirements
+
+## FR-1 Create Short URL
+
+The system shall allow users to submit a valid long URL and generate a shortened URL.
+
+Example:
+
+Original URL
+
+https://www.irctc.co.in
+
+Generated Short URL
+
+http://localhost:8080/aB12Cd
+
+---
+
+## FR-2 Support Custom Alias (Optional)
+
+The system shall allow users to optionally specify a custom short code (alias).
+
+Example
+
+Original URL
+
+https://www.irctc.co.in
+
+Custom Alias
+
+irctc
+
+Generated URL
+
+http://localhost:8080/irctc
+
+If no custom alias is provided, the application shall automatically generate a unique short code.
+
+---
+
+## FR-3 Persist URL Mapping
+
+The application shall persist the mapping between the generated short code and the original URL.
+
+Example
+
+| Short Code | Original URL |
+|------------|--------------|
+| aB12Cd | https://www.irctc.co.in |
+
+Only the **short code** shall be stored in the database.
+
+The complete shortened URL shall be constructed dynamically at runtime using the application's configured base URL.
+
+Reason:
+
+- Environment independent
+- Supports Dev/UAT/Production deployments
+- Avoids database changes across environments
+- Kubernetes friendly
+
+---
+
+## FR-4 Ensure Unique Short Codes
+
+Every generated or user-provided short code shall be unique.
+
+If a user provides an alias that already exists, the system shall reject the request with an appropriate error response.
+
+Example
+
+HTTP Status
+
+409 Conflict
+
+Response
+
+{
+   "message": "Short Code already exists."
+}
+
+Automatically generated short codes shall also be validated for uniqueness before persistence.
+
+---
+
+## FR-5 URL Redirection
+
+When a client accesses a valid shortened URL, the application shall redirect the client to the original URL.
+
+Example
+
+GET
+
+http://localhost:8080/aB12Cd
+
+↓
+
+Redirect
+
+https://www.irctc.co.in
+
+The application shall return an appropriate HTTP redirect response.
+
+---
+
+## FR-6 URL Analytics
+
+The application shall maintain usage statistics for every shortened URL.
+
+Analytics shall include:
+
+- Click Count
+- Created Timestamp
+- Last Accessed Timestamp
+- Original URL
+- Short Code
+
+Analytics shall be accessible through a dedicated REST API.
+
+---
+
+## FR-7 Input Validation
+
+The application shall validate incoming requests.
+
+Validation shall include:
+
+- URL is mandatory
+- URL format is valid
+- URL uses HTTP or HTTPS
+- Custom alias (if provided) follows allowed format
+- Duplicate aliases are rejected
+
+Invalid requests shall return appropriate HTTP error responses.
+
+---
+
+## FR-8 Error Handling
+
+The application shall gracefully handle error scenarios including:
+
+- Invalid URL
+- URL not found
+- Duplicate short code
+- Internal server errors
+
+The application shall return meaningful JSON error responses instead of stack traces.
+
+---
+
+## FR-9 API Documentation
+
+All REST APIs shall be documented using OpenAPI (Swagger).
+
+Developers should be able to test APIs directly using Swagger UI.
+
+---
+
+## FR-10 Production Quality
+
+The solution shall follow production-ready software engineering practices including:
+
+- Layered Architecture
+- Clean Code
+- Logging
+- Exception Handling
+- Unit Testing
+- Integration Testing
+- Documentation
+
+---
+
+# Functional Flow
+
+User enters Long URL
+
+↓
+
+(Optional) User enters Custom Alias
+
+↓
+
+Application validates request
+
+↓
+
+Generate Short Code (if alias absent)
+
+↓
+
+Validate uniqueness
+
+↓
+
+Persist mapping
+
+↓
+
+Return Short URL
+
+↓
+
+User accesses Short URL
+
+↓
+
+Application looks up Short Code
+
+↓
+
+Redirect to Original URL
+
+↓
+
+Update Analytics

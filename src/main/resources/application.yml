@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: url-shortener
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/url_shortener}
+    username: ${DB_USERNAME:url_shortener_app}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+url-shortener:
+  base-url: ${PUBLIC_BASE_URL:http://localhost:8080}
+  generated-code-length: 10
+  max-allocation-attempts: 5
+  reserved-aliases:
+    - api
+    - swagger-ui
+    - swagger-ui.html
+    - v3
+    - actuator
+    - error
+    - favicon.ico
